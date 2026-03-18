@@ -1,0 +1,66 @@
+<div class="card">
+  <div class="card-header">
+    <h2>🎖️ Military</h2>
+    <span class="cities-badge">{{ nation().num_cities }} cities</span>
+  </div>
+  <div class="card-body">
+    <div class="units-list">
+      @for (unit of units(); track unit.label) {
+        <div class="unit-row">
+          <div class="unit-top">
+            <span class="unit-icon">{{ unit.icon }}</span>
+            <span class="unit-label">{{ unit.label }}</span>
+            <span class="unit-numbers">
+              <span class="current">{{ unit.current | number }}</span>
+              <span class="separator">/</span>
+              <span class="cap">{{ unit.cap | number }}</span>
+            </span>
+          </div>
+          <div class="unit-bar">
+            <div
+              class="unit-bar-fill"
+              [style.width.%]="unit.fillPercent"
+              [class.full]="unit.fillPercent >= 100"
+              [class.high]="unit.fillPercent >= 75 && unit.fillPercent < 100"
+              [class.mid]="unit.fillPercent >= 40 && unit.fillPercent < 75"
+              [class.low]="unit.fillPercent < 40"
+            ></div>
+          </div>
+          <div class="unit-bottom">
+            <span class="available">
+              @if (unit.available > 0) {
+                <span class="buy-label">Can buy:</span> {{ unit.available | number }}
+              } @else {
+                <span class="at-cap">At cap</span>
+              }
+            </span>
+            <span class="fill-pct">{{ unit.fillPercent / 100 | percent:'1.0-0' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="specials-row">
+      @for (s of specials(); track s.label) {
+        <div class="special-unit">
+          <span class="unit-icon">{{ s.icon }}</span>
+          <div class="special-info">
+            <span class="unit-label">{{ s.label }}</span>
+            <span class="unit-value">{{ s.current | number }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="war-stats">
+      <div class="war-stat offensive">
+        <span class="label">Offensive Wars</span>
+        <span class="value">{{ nation().offensive_wars_count }}</span>
+      </div>
+      <div class="war-stat defensive">
+        <span class="label">Defensive Wars</span>
+        <span class="value">{{ nation().defensive_wars_count }}</span>
+      </div>
+    </div>
+  </div>
+</div>

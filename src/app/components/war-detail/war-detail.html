@@ -1,0 +1,304 @@
+<div class="war-detail-page">
+  <header class="detail-header">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    @if (war(); as w) {
+      <h1>War #{{ w.id }}</h1>
+    }
+  </header>
+
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading war details...</p>
+    </div>
+  } @else if (error(); as err) {
+    <div class="error-banner">
+      <p>{{ err }}</p>
+      <a routerLink="/">Return to Dashboard</a>
+    </div>
+  } @else if (war(); as w) {
+    <!-- War Overview Banner -->
+    <div class="war-banner">
+      <div class="banner-side attacker-side">
+        <div class="side-label">⚔️ ATTACKER</div>
+        <div class="nation-name">{{ w.attacker.nation_name }}</div>
+        @if (w.attacker.alliance) {
+          <div class="alliance-name">{{ w.attacker.alliance.name }}</div>
+        }
+        <div class="side-score">{{ w.attacker.score | number:'1.2-2' }} score · {{ w.attacker.num_cities }}c</div>
+      </div>
+
+      <div class="banner-center">
+        <div class="war-type-badge">{{ w.war_type }}</div>
+        <div class="vs-circle">VS</div>
+        <div class="turns-badge">{{ w.turns_left }} turns left</div>
+        @if (w.reason) {
+          <div class="war-reason">{{ w.reason }}</div>
+        }
+        <div class="war-date">Started {{ w.date | date:'mediumDate' }}</div>
+      </div>
+
+      <div class="banner-side defender-side">
+        <div class="side-label">🛡️ DEFENDER</div>
+        <div class="nation-name">{{ w.defender.nation_name }}</div>
+        @if (w.defender.alliance) {
+          <div class="alliance-name">{{ w.defender.alliance.name }}</div>
+        }
+        <div class="side-score">{{ w.defender.score | number:'1.2-2' }} score · {{ w.defender.num_cities }}c</div>
+      </div>
+    </div>
+
+    <!-- Resistance & Points -->
+    <div class="status-cards">
+      <div class="card status-card">
+        <div class="card-header"><h2>💪 Resistance</h2></div>
+        <div class="card-body">
+          <div class="resistance-row">
+            <span class="res-label att-label">Attacker</span>
+            <div class="res-bar-wrap">
+              <div class="res-bar att-bar" [style.width.%]="w.att_resistance"></div>
+            </div>
+            <span class="res-value">{{ w.att_resistance }}</span>
+          </div>
+          <div class="resistance-row">
+            <span class="res-label def-label">Defender</span>
+            <div class="res-bar-wrap">
+              <div class="res-bar def-bar" [style.width.%]="w.def_resistance"></div>
+            </div>
+            <span class="res-value">{{ w.def_resistance }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card status-card">
+        <div class="card-header"><h2>🏆 Military Action Points</h2></div>
+        <div class="card-body">
+          <div class="score-row">
+            <div class="score-side">
+              <span class="score-label">Attacker</span>
+              <span class="score-val att-text">{{ w.att_points }}</span>
+            </div>
+            <div class="score-divider">—</div>
+            <div class="score-side">
+              <span class="score-label">Defender</span>
+              <span class="score-val def-text">{{ w.def_points }}</span>
+            </div>
+          </div>
+          <div class="peace-status">
+            @if (w.att_peace) {
+              <span class="peace-badge att-peace">🕊️ Attacker wants peace</span>
+            }
+            @if (w.def_peace) {
+              <span class="peace-badge def-peace">🕊️ Defender wants peace</span>
+            }
+            @if (!w.att_peace && !w.def_peace) {
+              <span class="no-peace">No peace offers</span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nation Details Side-by-Side -->
+    <div class="nations-comparison">
+      @if (attNation(); as att) {
+        <div class="card nation-card">
+          <div class="card-header att-header">
+            <h2>⚔️ {{ att.nation_name }}</h2>
+          </div>
+          <div class="card-body">
+            <div class="nation-info-grid">
+              <div class="info-row">
+                <span class="info-label">Leader</span>
+                <span class="info-value">{{ att.leader_name }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Score</span>
+                <span class="info-value">{{ att.score | number:'1.2-2' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Cities</span>
+                <span class="info-value">{{ att.num_cities }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">War Policy</span>
+                <span class="info-value">{{ att.war_policy }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Continent</span>
+                <span class="info-value">{{ att.continent }}</span>
+              </div>
+              @if (att.alliance) {
+                <div class="info-row">
+                  <span class="info-label">Alliance</span>
+                  <span class="info-value">{{ att.alliance.name }}</span>
+                </div>
+              }
+            </div>
+            <h3 class="mil-title">Military</h3>
+            <div class="mil-grid">
+              <div class="mil-item"><span>🪖</span><span>{{ att.soldiers | number }}</span></div>
+              <div class="mil-item"><span>🛡️</span><span>{{ att.tanks | number }}</span></div>
+              <div class="mil-item"><span>✈️</span><span>{{ att.aircraft | number }}</span></div>
+              <div class="mil-item"><span>🚢</span><span>{{ att.ships | number }}</span></div>
+              <div class="mil-item"><span>🚀</span><span>{{ att.missiles | number }}</span></div>
+              <div class="mil-item"><span>☢️</span><span>{{ att.nukes | number }}</span></div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (defNation(); as def) {
+        <div class="card nation-card">
+          <div class="card-header def-header">
+            <h2>🛡️ {{ def.nation_name }}</h2>
+          </div>
+          <div class="card-body">
+            <div class="nation-info-grid">
+              <div class="info-row">
+                <span class="info-label">Leader</span>
+                <span class="info-value">{{ def.leader_name }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Score</span>
+                <span class="info-value">{{ def.score | number:'1.2-2' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Cities</span>
+                <span class="info-value">{{ def.num_cities }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">War Policy</span>
+                <span class="info-value">{{ def.war_policy }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Continent</span>
+                <span class="info-value">{{ def.continent }}</span>
+              </div>
+              @if (def.alliance) {
+                <div class="info-row">
+                  <span class="info-label">Alliance</span>
+                  <span class="info-value">{{ def.alliance.name }}</span>
+                </div>
+              }
+            </div>
+            <h3 class="mil-title">Military</h3>
+            <div class="mil-grid">
+              <div class="mil-item"><span>🪖</span><span>{{ def.soldiers | number }}</span></div>
+              <div class="mil-item"><span>🛡️</span><span>{{ def.tanks | number }}</span></div>
+              <div class="mil-item"><span>✈️</span><span>{{ def.aircraft | number }}</span></div>
+              <div class="mil-item"><span>🚢</span><span>{{ def.ships | number }}</span></div>
+              <div class="mil-item"><span>🚀</span><span>{{ def.missiles | number }}</span></div>
+              <div class="mil-item"><span>☢️</span><span>{{ def.nukes | number }}</span></div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Strategy Suggestions -->
+    <div class="suggestions-section">
+      <div class="card">
+        <div class="card-header att-header">
+          <h2>🧠 Attacker Strategy</h2>
+        </div>
+        <div class="card-body">
+          @for (s of attSuggestions(); track s.action) {
+            <div class="suggestion" [class]="s.priority">
+              <div class="suggestion-header">
+                <span class="priority-dot"></span>
+                <span class="suggestion-action">{{ s.action }}</span>
+                <span class="priority-label">{{ s.priority }}</span>
+              </div>
+              <p class="suggestion-reason">{{ s.reason }}</p>
+            </div>
+          } @empty {
+            <p class="empty-state">Loading strategy analysis...</p>
+          }
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header def-header">
+          <h2>🧠 Defender Strategy</h2>
+        </div>
+        <div class="card-body">
+          @for (s of defSuggestions(); track s.action) {
+            <div class="suggestion" [class]="s.priority">
+              <div class="suggestion-header">
+                <span class="priority-dot"></span>
+                <span class="suggestion-action">{{ s.action }}</span>
+                <span class="priority-label">{{ s.priority }}</span>
+              </div>
+              <p class="suggestion-reason">{{ s.reason }}</p>
+            </div>
+          } @empty {
+            <p class="empty-state">Loading strategy analysis...</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- War Timeline -->
+    <div class="card timeline-card">
+      <div class="card-header">
+        <h2>📜 War Timeline</h2>
+        <span class="attack-count">{{ timeline().length }} attacks</span>
+      </div>
+      <div class="card-body">
+        @if (timeline().length === 0) {
+          <p class="empty-state">No attacks have been made yet</p>
+        } @else {
+          <div class="timeline">
+            @for (attack of timeline(); track attack.id) {
+              <div class="timeline-item" [class.attacker-action]="isAttackerAction(attack)" [class.defender-action]="!isAttackerAction(attack)">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="attack-icon">{{ getAttackIcon(attack.type) }}</span>
+                    <span class="attack-type">{{ getAttackLabel(attack.type) }}</span>
+                    <span class="attack-result" [class]="getSuccessClass(attack.success)">
+                      {{ getSuccessLabel(attack.success) }}
+                    </span>
+                    <span class="attack-date">{{ attack.date | date:'short' }}</span>
+                  </div>
+                  <div class="timeline-details">
+                    <span class="detail-who">
+                      @if (isAttackerAction(attack)) {
+                        ⚔️ by Attacker
+                      } @else {
+                        🛡️ by Defender
+                      }
+                    </span>
+                    @if (attack.att_soldiers_lost > 0 || attack.def_soldiers_lost > 0) {
+                      <span class="detail-item">⚔️ Soldiers: -{{ attack.att_soldiers_lost | number }} / -{{ attack.def_soldiers_lost | number }}</span>
+                    }
+                    @if (attack.att_tanks_lost > 0 || attack.def_tanks_lost > 0) {
+                      <span class="detail-item">🪖 Tanks: -{{ attack.att_tanks_lost | number }} / -{{ attack.def_tanks_lost | number }}</span>
+                    }
+                    @if (attack.att_aircraft_lost > 0 || attack.def_aircraft_lost > 0) {
+                      <span class="detail-item">✈️ Aircraft: -{{ attack.att_aircraft_lost | number }} / -{{ attack.def_aircraft_lost | number }}</span>
+                    }
+                    @if (attack.att_ships_lost > 0 || attack.def_ships_lost > 0) {
+                      <span class="detail-item">🚢 Ships: -{{ attack.att_ships_lost | number }} / -{{ attack.def_ships_lost | number }}</span>
+                    }
+                    @if (attack.infra_destroyed > 0) {
+                      <span class="detail-item infra-loss">Infra destroyed: {{ attack.infra_destroyed | number:'1.2-2' }}</span>
+                    }
+                    @if (attack.money_looted > 0) {
+                      <span class="detail-item loot">${{ attack.money_looted | number:'1.0-0' }} looted</span>
+                    }
+                    @if (attack.att_mun_used > 0 || attack.def_mun_used > 0) {
+                      <span class="detail-item ammo">Mun: {{ attack.att_mun_used | number:'1.1-1' }} / {{ attack.def_mun_used | number:'1.1-1' }}</span>
+                      <span class="detail-item ammo">Gas: {{ attack.att_gas_used | number:'1.1-1' }} / {{ attack.def_gas_used | number:'1.1-1' }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,56 @@
+<div class="dashboard">
+  <header class="dashboard-header">
+    <div class="header-left">
+      <h1>⚔️ Politics & War Dashboard</h1>
+    </div>
+    <div class="header-right">
+      @if (nation(); as n) {
+        <span class="nation-badge">{{ n.nation_name }}</span>
+      }
+      <button class="refresh-btn" (click)="loadData()" [disabled]="loading()">
+        @if (loading()) {
+          ⟳ Loading...
+        } @else {
+          ⟳ Refresh
+        }
+      </button>
+    </div>
+  </header>
+
+  @if (loading() && !nation()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading dashboard data...</p>
+    </div>
+  } @else if (error(); as err) {
+    <div class="error-banner">
+      <p>{{ err }}</p>
+      <button (click)="loadData()">Retry</button>
+    </div>
+  } @else {
+    <div class="dashboard-grid">
+      <div class="grid-col-left">
+        @if (nation(); as n) {
+          <app-nation-overview [nation]="n" />
+          <app-military-overview [nation]="n" />
+        }
+      </div>
+      <div class="grid-col-center">
+        <app-wars-panel
+          [wars]="wars()"
+          [nationId]="nation()?.id ?? 0"
+          [myAllianceId]="nation()?.alliance_id ?? 0"
+          [topAlliances]="topAlliances()"
+        />
+      </div>
+      <div class="grid-col-right">
+        @if (alliance(); as a) {
+          <app-alliance-panel [alliance]="a" />
+        }
+        @if (tradePrices(); as tp) {
+          <app-trade-prices [prices]="tp" />
+        }
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,51 @@
+<div class="card">
+  <div class="card-header">
+    <h2>🏛️ Nation Overview</h2>
+  </div>
+  <div class="card-body">
+    <div class="nation-header">
+      @if (nation().flag) {
+        <img [src]="nation().flag" alt="Flag" class="nation-flag" />
+      }
+      <div>
+        <h3>{{ nation().nation_name }}</h3>
+        <span class="leader">Led by {{ nation().leader_name }}</span>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat">
+        <span class="stat-label">Score</span>
+        <span class="stat-value">{{ nation().score | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Cities</span>
+        <span class="stat-value">{{ nation().num_cities }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Population</span>
+        <span class="stat-value">{{ nation().population | number }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Continent</span>
+        <span class="stat-value">{{ nation().continent }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">War Policy</span>
+        <span class="stat-value">{{ nation().war_policy }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Color</span>
+        <span class="stat-value">{{ nation().color }}</span>
+      </div>
+    </div>
+    @if (nation().alliance) {
+      <div class="alliance-badge">
+        <span class="badge-label">Alliance:</span>
+        <span class="badge-value">{{ nation().alliance!.name }}</span>
+        @if (nation().alliance_position) {
+          <span class="position">({{ nation().alliance_position }})</span>
+        }
+      </div>
+    }
+  </div>
+</div>

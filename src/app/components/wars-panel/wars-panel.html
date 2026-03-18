@@ -1,0 +1,87 @@
+<div class="card wars-card">
+  <div class="card-header">
+    <h2>⚔️ Active Wars</h2>
+    @if (activeTab(); as tab) {
+      <span class="war-count">{{ tab.wars.length }} wars</span>
+    }
+  </div>
+
+  <div class="tabs-bar">
+    @for (tab of tabs(); track tab.id) {
+      <button
+        class="tab-btn"
+        [class.active]="tab.id === activeTabId()"
+        (click)="selectTab(tab.id)"
+      >
+        {{ tab.label }}
+        @if (tab.loading) {
+          <span class="tab-spinner"></span>
+        }
+      </button>
+    }
+  </div>
+
+  <div class="card-body">
+    @if (activeTab(); as tab) {
+      @if (tab.loading) {
+        <div class="tab-loading">
+          <div class="spinner"></div>
+          <p>Loading wars...</p>
+        </div>
+      } @else if (tab.wars.length === 0) {
+        <p class="empty-state">No active wars found</p>
+      } @else {
+        <div class="wars-list scrollable">
+          @for (war of tab.wars; track war.id) {
+            <a class="war-item" [class]="getWarClass(war)" [routerLink]="['/war', war.id]">
+              <div class="war-header">
+                <span class="war-type">{{ war.war_type }}</span>
+                <span class="turns-left">{{ war.turns_left }} turns left</span>
+              </div>
+              <div class="war-nations">
+                <div class="attacker">
+                  <span class="role">ATK</span>
+                  <span class="name">{{ war.attacker.nation_name }}</span>
+                  @if (war.attacker.alliance) {
+                    <span class="alliance-tag">{{ war.attacker.alliance.name }}</span>
+                  }
+                </div>
+                <span class="vs">VS</span>
+                <div class="defender">
+                  <span class="role">DEF</span>
+                  <span class="name">{{ war.defender.nation_name }}</span>
+                  @if (war.defender.alliance) {
+                    <span class="alliance-tag">{{ war.defender.alliance.name }}</span>
+                  }
+                </div>
+              </div>
+              <div class="resistance-bars">
+                <div class="resistance att">
+                  <span class="label">ATK</span>
+                  <div class="bar">
+                    <div class="fill" [style.width.%]="getResistancePercent(war.att_resistance)"></div>
+                  </div>
+                  <span class="value">{{ war.att_resistance }}</span>
+                </div>
+                <div class="resistance def">
+                  <span class="label">DEF</span>
+                  <div class="bar">
+                    <div class="fill" [style.width.%]="getResistancePercent(war.def_resistance)"></div>
+                  </div>
+                  <span class="value">{{ war.def_resistance }}</span>
+                </div>
+              </div>
+              <div class="war-footer">
+                <span class="points">ATK: {{ war.att_points }} MAP</span>
+                <span class="points">DEF: {{ war.def_points }} MAP</span>
+                @if (war.att_peace || war.def_peace) {
+                  <span class="peace-offer">🕊️ Peace offered</span>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

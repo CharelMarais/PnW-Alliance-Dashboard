@@ -1,0 +1,184 @@
+.cities-badge {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.units-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.unit-row {
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+
+  .unit-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+
+    .unit-icon {
+      font-size: 1.1rem;
+    }
+
+    .unit-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    .unit-numbers {
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+
+      .current {
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .separator {
+        color: var(--text-muted);
+        margin: 0 2px;
+      }
+
+      .cap {
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+    }
+  }
+
+  .unit-bar {
+    height: 6px;
+    background: var(--bg-card);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+
+    .unit-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+
+      &.full { background: var(--success); }
+      &.high { background: var(--accent); }
+      &.mid { background: var(--warning); }
+      &.low { background: var(--attack-color); }
+    }
+  }
+
+  .unit-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+
+    .available {
+      color: var(--text-secondary);
+
+      .buy-label {
+        color: var(--text-muted);
+      }
+
+      .at-cap {
+        color: var(--success);
+        font-weight: 600;
+      }
+    }
+
+    .fill-pct {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
+}
+
+.specials-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  .special-unit {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+
+    .unit-icon {
+      font-size: 1.1rem;
+    }
+
+    .special-info {
+      display: flex;
+      flex-direction: column;
+
+      .unit-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .unit-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+    }
+  }
+}
+
+.war-stats {
+  display: flex;
+  gap: 10px;
+
+  .war-stat {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+
+    .label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .value {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    &.offensive {
+      background: rgba(239, 83, 80, 0.1);
+      border: 1px solid rgba(239, 83, 80, 0.2);
+
+      .value {
+        color: var(--attack-color);
+      }
+    }
+
+    &.defensive {
+      background: rgba(66, 165, 245, 0.1);
+      border: 1px solid rgba(66, 165, 245, 0.2);
+
+      .value {
+        color: var(--defend-color);
+      }
+    }
+  }
+}

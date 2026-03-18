@@ -1,0 +1,17 @@
+<div class="card">
+  <div class="card-header">
+    <h2>📊 Trade Prices</h2>
+    <span class="updated">{{ prices().date | date:'shortDate' }}</span>
+  </div>
+  <div class="card-body">
+    <div class="prices-list">
+      @for (resource of resources; track resource.key) {
+        <div class="price-row">
+          <span class="resource-icon">{{ resource.icon }}</span>
+          <span class="resource-name">{{ resource.label }}</span>
+          <span class="resource-price">${{ getPrice(resource.key) | number:'1.0-0' }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

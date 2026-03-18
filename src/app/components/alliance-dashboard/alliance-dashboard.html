@@ -1,0 +1,896 @@
+<div class="alliance-dashboard">
+  <header class="page-header">
+    @if (alliance(); as a) {
+      <div class="header-info">
+        @if (a.flag) {
+          <img [src]="a.flag" alt="Flag" class="alliance-flag" />
+        }
+        <div>
+          <h1>{{ a.name }}</h1>
+          @if (a.acronym) {
+            <span class="acronym">[{{ a.acronym }}]</span>
+          }
+        </div>
+      </div>
+    } @else {
+      <h1>🛡️ Alliance Dashboard</h1>
+    }
+    <div class="header-timers">
+      <div class="timer-item">
+        <span class="timer-label">⏱️ Next Turn</span>
+        <span class="timer-value">{{ nextTurnTimer() }}</span>
+      </div>
+      <div class="timer-item">
+        <span class="timer-label">💥 Military Reset</span>
+        <span class="timer-value reset">{{ militaryResetTimer() }}</span>
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading alliance data...</p>
+    </div>
+  } @else if (error(); as err) {
+    <div class="error-banner">
+      <p>{{ err }}</p>
+      <button (click)="loadData()">Retry</button>
+    </div>
+  } @else {
+    <div class="tabs-bar">
+      <button class="tab-btn" [class.active]="activeTab() === 'overview'" (click)="selectTab('overview')">
+        📊 Overview
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'wars'" (click)="selectTab('wars')">
+        ⚔️ Current Wars
+        <span class="tab-badge">{{ activeWarCount() }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'history'" (click)="selectTab('history')">
+        📜 War History
+        @if (historyLoading()) {
+          <span class="tab-spinner"></span>
+        }
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'members'" (click)="selectTab('members')">
+        👥 Members
+        <span class="tab-badge">{{ memberCount() }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'treaties'" (click)="selectTab('treaties')">
+        📋 Treaties
+        <span class="tab-badge">{{ treaties().length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'audit'" (click)="selectTab('audit')">
+        🔍 Member Audit
+      </button>
+    </div>
+
+    <!-- Overview Tab -->
+    @if (activeTab() === 'overview') {
+      <div class="tab-content">
+        <div class="overview-grid">
+          <div class="card stats-card">
+            <div class="card-header"><h2>📊 Alliance Stats</h2></div>
+            <div class="card-body">
+              <div class="stats-grid">
+                <div class="stat">
+                  <span class="stat-label">Rank</span>
+                  <span class="stat-value">#{{ alliance()?.rank }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Score</span>
+                  <span class="stat-value">{{ totalScore() | number:'1.2-2' }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Avg Score</span>
+                  <span class="stat-value">{{ avgScore() | number:'1.2-2' }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Members</span>
+                  <span class="stat-value">{{ memberCount() }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Color</span>
+                  <span class="stat-value color-badge">{{ alliance()?.color }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Founded</span>
+                  <span class="stat-value">{{ alliance()?.date | date:'mediumDate' }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Accepting Members</span>
+                  <span class="stat-value">{{ alliance()?.accept_members ? '✅ Yes' : '❌ No' }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Active Wars</span>
+                  <span class="stat-value">{{ activeWarCount() }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card military-card">
+            <div class="card-header"><h2>🎖️ Combined Military</h2></div>
+            <div class="card-body">
+              <div class="military-grid">
+                <div class="mil-stat">
+                  <span class="mil-icon">🪖</span>
+                  <div>
+                    <span class="mil-label">Soldiers</span>
+                    <span class="mil-value">{{ totalMilitary().soldiers | number }}</span>
+                  </div>
+                </div>
+                <div class="mil-stat">
+                  <span class="mil-icon">🪖</span>
+                  <div>
+                    <span class="mil-label">Tanks</span>
+                    <span class="mil-value">{{ totalMilitary().tanks | number }}</span>
+                  </div>
+                </div>
+                <div class="mil-stat">
+                  <span class="mil-icon">✈️</span>
+                  <div>
+                    <span class="mil-label">Aircraft</span>
+                    <span class="mil-value">{{ totalMilitary().aircraft | number }}</span>
+                  </div>
+                </div>
+                <div class="mil-stat">
+                  <span class="mil-icon">🚢</span>
+                  <div>
+                    <span class="mil-label">Ships</span>
+                    <span class="mil-value">{{ totalMilitary().ships | number }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card links-card">
+            <div class="card-header"><h2>🔗 Links</h2></div>
+            <div class="card-body links-list">
+              @if (alliance()?.forum_link) {
+                <a [href]="alliance()!.forum_link" target="_blank" rel="noopener noreferrer" class="link-item">
+                  🌐 Forum
+                </a>
+              }
+              @if (alliance()?.discord_link) {
+                <a [href]="alliance()!.discord_link" target="_blank" rel="noopener noreferrer" class="link-item">
+                  💬 Discord
+                </a>
+              }
+              @if (alliance()?.wiki_link) {
+                <a [href]="alliance()!.wiki_link" target="_blank" rel="noopener noreferrer" class="link-item">
+                  📖 Wiki
+                </a>
+              }
+              @if (!alliance()?.forum_link && !alliance()?.discord_link && !alliance()?.wiki_link) {
+                <p class="empty-state">No links available</p>
+              }
+            </div>
+          </div>
+
+          <!-- Members Returning from Vacation -->
+          @if (vacationEndingSoon().length > 0) {
+            <div class="card vacation-returning-card">
+              <div class="card-header"><h2>✈️ Returning from Vacation Soon</h2></div>
+              <div class="card-body">
+                <div class="vacation-returning-list">
+                  @for (n of vacationEndingSoon(); track n.id) {
+                    <div class="vacation-returning-item">
+                      <div class="vr-info">
+                        <span class="vr-name">{{ n.nation_name }}</span>
+                        @if (n.discord) {
+                          <span class="vr-discord">💬 {{ n.discord }}</span>
+                        }
+                      </div>
+                      <div class="vr-time">
+                        <span class="vr-countdown">⏳ {{ formatVacationTime(n.vacation_mode_turns) }}</span>
+                        <span class="vr-meta">{{ n.num_cities }} cities · ⭐ {{ n.score }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Current Wars Tab -->
+    @if (activeTab() === 'wars') {
+      <div class="tab-content">
+        @if (warsLoading()) {
+          <div class="tab-loading">
+            <div class="spinner"></div>
+            <p>Loading wars...</p>
+          </div>
+        } @else if (activeWars().length === 0) {
+          <p class="empty-state">No active wars</p>
+        } @else {
+          <div class="wars-grid">
+            @for (war of activeWars(); track war.id) {
+              <div class="war-card">
+                <div class="war-card-header">
+                  <span class="war-type-badge">{{ war.war_type }}</span>
+                  <span class="war-side" [class]="getWarSide(war)">
+                    {{ getWarSide(war) === 'attacker' ? '⚔️ Attacking' : '🛡️ Defending' }}
+                  </span>
+                  <span class="turns-left">{{ war.turns_left }} turns</span>
+                </div>
+                <div class="war-card-nations">
+                  <div class="war-nation attacker-side">
+                    <span class="nation-name">{{ war.attacker.nation_name }}</span>
+                    @if (war.attacker.alliance) {
+                      <span class="alliance-tag">{{ war.attacker.alliance.name }}</span>
+                    }
+                    <span class="nation-score">⭐ {{ war.attacker.score | number:'1.2-2' }}</span>
+                    <span class="nation-cities">{{ war.attacker.num_cities }} cities</span>
+                    <span class="nation-policy">📜 {{ war.attacker.war_policy }}</span>
+                  </div>
+                  <div class="vs-divider">
+                    <span>VS</span>
+                  </div>
+                  <div class="war-nation defender-side">
+                    <span class="nation-name">{{ war.defender.nation_name }}</span>
+                    @if (war.defender.alliance) {
+                      <span class="alliance-tag">{{ war.defender.alliance.name }}</span>
+                    }
+                    <span class="nation-score">⭐ {{ war.defender.score | number:'1.2-2' }}</span>
+                    <span class="nation-cities">{{ war.defender.num_cities }} cities</span>
+                    <span class="nation-policy">📜 {{ war.defender.war_policy }}</span>
+                  </div>
+                </div>
+                <div class="war-card-resistance">
+                  <div class="resistance-bar">
+                    <span class="res-label">ATK</span>
+                    <div class="res-track">
+                      <div class="res-fill attack" [style.width.%]="war.att_resistance"></div>
+                    </div>
+                    <span class="res-value">{{ war.att_resistance }}%</span>
+                  </div>
+                  <div class="resistance-bar">
+                    <span class="res-label">DEF</span>
+                    <div class="res-track">
+                      <div class="res-fill defend" [style.width.%]="war.def_resistance"></div>
+                    </div>
+                    <span class="res-value">{{ war.def_resistance }}%</span>
+                  </div>
+                </div>
+                @if (war.att_peace || war.def_peace) {
+                  <div class="peace-indicator">
+                    🕊️
+                    @if (war.att_peace && war.def_peace) {
+                      Both sides offered peace
+                    } @else if (war.att_peace) {
+                      Attacker offered peace
+                    } @else {
+                      Defender offered peace
+                    }
+                  </div>
+                }
+                <div class="war-card-actions">
+                  <button class="war-action-btn view-war" [class.active]="getWarInfo(war.id)" (click)="toggleWarInfo(war)">📋 War Info</button>
+                  <button class="war-action-btn view-counter" [class.active]="getWarCounter(war.id)" (click)="toggleWarCounter(war)">🎯 Counter / Assist</button>
+                </div>
+
+                @if (getWarInfo(war.id); as wi) {
+                  <div class="war-counter-inline">
+                    @if (wi.loading) {
+                      <div class="inline-counter-loading">
+                        <div class="spinner-sm"></div>
+                        <span>Loading war info...</span>
+                      </div>
+                    } @else if (wi.data; as info) {
+                      <!-- MAPs & Points -->
+                      <div class="wi-section">
+                        <div class="wi-section-title">🏆 Military Action Points</div>
+                        <div class="wi-map-row">
+                          <span class="wi-map-side att-text">⚔️ Attacker: {{ info.war.att_points }}</span>
+                          <span class="wi-map-side def-text">🛡️ Defender: {{ info.war.def_points }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Nation Comparison -->
+                      @if (info.attNation || info.defNation) {
+                        <div class="wi-section">
+                          <div class="wi-section-title">👥 Nation Details</div>
+                          <div class="wi-nations-grid">
+                            @if (info.attNation; as att) {
+                              <div class="wi-nation-card att-border">
+                                <div class="wi-nation-header att-text">⚔️ {{ att.nation_name }}</div>
+                                <div class="wi-nation-info">
+                                  <span>👤 {{ att.leader_name }}</span>
+                                  <span>📜 {{ att.war_policy }}</span>
+                                  <span>🌍 {{ att.continent }}</span>
+                                </div>
+                                <div class="wi-nation-mil">
+                                  <span>🪖 {{ att.soldiers | number }}</span>
+                                  <span>🛡️ {{ att.tanks | number }}</span>
+                                  <span>✈️ {{ att.aircraft | number }}</span>
+                                  <span>🚢 {{ att.ships | number }}</span>
+                                  <span>🚀 {{ att.missiles | number }}</span>
+                                  <span>☢️ {{ att.nukes | number }}</span>
+                                </div>
+                              </div>
+                            }
+                            @if (info.defNation; as def) {
+                              <div class="wi-nation-card def-border">
+                                <div class="wi-nation-header def-text">🛡️ {{ def.nation_name }}</div>
+                                <div class="wi-nation-info">
+                                  <span>👤 {{ def.leader_name }}</span>
+                                  <span>📜 {{ def.war_policy }}</span>
+                                  <span>🌍 {{ def.continent }}</span>
+                                </div>
+                                <div class="wi-nation-mil">
+                                  <span>🪖 {{ def.soldiers | number }}</span>
+                                  <span>🛡️ {{ def.tanks | number }}</span>
+                                  <span>✈️ {{ def.aircraft | number }}</span>
+                                  <span>🚢 {{ def.ships | number }}</span>
+                                  <span>🚀 {{ def.missiles | number }}</span>
+                                  <span>☢️ {{ def.nukes | number }}</span>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Strategy Suggestions -->
+                      @if (info.suggestions.length > 0) {
+                        <div class="wi-section">
+                          <div class="wi-section-title">🧠 Strategy</div>
+                          <div class="wi-suggestions">
+                            @for (s of info.suggestions; track s.action) {
+                              <div class="wi-suggestion" [class]="s.priority">
+                                <span class="wi-sug-priority"></span>
+                                <div class="wi-sug-content">
+                                  <span class="wi-sug-action">{{ s.action }}</span>
+                                  <span class="wi-sug-reason">{{ s.reason }}</span>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Timeline -->
+                      @if (info.timeline.length > 0) {
+                        <div class="wi-section">
+                          <div class="wi-section-title">📜 Timeline ({{ info.timeline.length }} attacks)</div>
+                          <div class="wi-timeline">
+                            @for (attack of info.timeline; track attack.id) {
+                              <div class="wi-tl-item" [class.att-action]="isAttackerAction(attack, info.war)" [class.def-action]="!isAttackerAction(attack, info.war)">
+                                <div class="wi-tl-header">
+                                  <span class="wi-tl-icon">{{ getAttackIcon(attack.type) }}</span>
+                                  <span class="wi-tl-type">{{ getAttackLabel(attack.type) }}</span>
+                                  <span class="wi-tl-result" [class]="getSuccessClass(attack.success)">{{ getSuccessLabel(attack.success) }}</span>
+                                  <span class="wi-tl-date">{{ attack.date | date:'short' }}</span>
+                                </div>
+                                <div class="wi-tl-details">
+                                  @if (attack.att_soldiers_lost > 0 || attack.def_soldiers_lost > 0) {
+                                    <span>🪖 -{{ attack.att_soldiers_lost | number }} / -{{ attack.def_soldiers_lost | number }}</span>
+                                  }
+                                  @if (attack.att_tanks_lost > 0 || attack.def_tanks_lost > 0) {
+                                    <span>🛡️ -{{ attack.att_tanks_lost | number }} / -{{ attack.def_tanks_lost | number }}</span>
+                                  }
+                                  @if (attack.att_aircraft_lost > 0 || attack.def_aircraft_lost > 0) {
+                                    <span>✈️ -{{ attack.att_aircraft_lost | number }} / -{{ attack.def_aircraft_lost | number }}</span>
+                                  }
+                                  @if (attack.att_ships_lost > 0 || attack.def_ships_lost > 0) {
+                                    <span>🚢 -{{ attack.att_ships_lost | number }} / -{{ attack.def_ships_lost | number }}</span>
+                                  }
+                                  @if (attack.infra_destroyed > 0) {
+                                    <span class="infra-loss">🏗️ -{{ attack.infra_destroyed | number:'1.2-2' }}</span>
+                                  }
+                                  @if (attack.money_looted > 0) {
+                                    <span class="loot">${{ attack.money_looted | number:'1.0-0' }}</span>
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    } @else {
+                      <p class="inline-no-counters">Failed to load war info</p>
+                    }
+                  </div>
+                }
+
+                @if (getWarCounter(war.id); as wc) {
+                  <div class="war-counter-inline">
+                    @if (wc.loading) {
+                      <div class="inline-counter-loading">
+                        <div class="spinner-sm"></div>
+                        <span>Finding counters...</span>
+                      </div>
+                    } @else if (wc.data; as entry) {
+                      <div class="inline-enemy-stats">
+                        <span class="inline-enemy-label">🎯 {{ entry.enemy.nation_name }}</span>
+                        @if (entry.enemy.discord) {
+                          <span class="inline-discord">💬 {{ entry.enemy.discord }}</span>
+                        }
+                        <span class="inline-stat">⭐ {{ entry.enemy.score | number:'1.2-2' }}</span>
+                        <span class="inline-stat"><span class="mil-icon">🪖</span> {{ entry.enemy.soldiers | number }}</span>
+                        <span class="inline-stat"><span class="mil-icon">🛡️</span> {{ entry.enemy.tanks | number }}</span>
+                        <span class="inline-stat"><span class="mil-icon">✈️</span> {{ entry.enemy.aircraft | number }}</span>
+                        <span class="inline-stat"><span class="mil-icon">🚢</span> {{ entry.enemy.ships | number }}</span>
+                      </div>
+                      @if (entry.counters.length === 0) {
+                        <p class="inline-no-counters">⚠️ No members in range with open slots</p>
+                      } @else {
+                        <div class="inline-counters-list">
+                          <div class="inline-counter-hdr">
+                            <span class="ich-rank">#</span>
+                            <span class="ich-name">Member</span>
+                            <span class="ich-score">Score</span>
+                            <span class="ich-slots">Slots</span>
+                            <span class="ich-mil mil-icon">🪖</span>
+                            <span class="ich-mil mil-icon">🛡️</span>
+                            <span class="ich-mil mil-icon">✈️</span>
+                            <span class="ich-mil mil-icon">🚢</span>
+                            <span class="ich-assess">Assessment</span>
+                          </div>
+                          @for (c of entry.counters; track c.member.id; let i = $index) {
+                            <div class="inline-counter-row">
+                              <span class="icr-rank">{{ i + 1 }}</span>
+                              <div class="icr-name">
+                                <span class="icr-nation">{{ c.member.nation_name }}</span>
+                                <span class="icr-cities">{{ c.member.num_cities }} cities</span>
+                                @if (c.member.discord) {
+                                  <span class="icr-discord">💬 {{ c.member.discord }}</span>
+                                }
+                              </div>
+                              <span class="icr-score">{{ c.member.score | number:'1.0-0' }}</span>
+                              <span class="icr-slots"><span class="slots-badge">{{ c.openSlots }}/5</span></span>
+                              <span class="icr-mil" [class]="c.member.soldiers > entry.enemy.soldiers ? 'advantage' : 'disadvantage'">{{ c.member.soldiers | number }}</span>
+                              <span class="icr-mil" [class]="c.member.tanks > entry.enemy.tanks ? 'advantage' : 'disadvantage'">{{ c.member.tanks | number }}</span>
+                              <span class="icr-mil" [class]="c.member.aircraft > entry.enemy.aircraft ? 'advantage' : 'disadvantage'">{{ c.member.aircraft | number }}</span>
+                              <span class="icr-mil" [class]="c.member.ships > entry.enemy.ships ? 'advantage' : 'disadvantage'">{{ c.member.ships | number }}</span>
+                              <span class="icr-assess" [class]="getMilAdvantage(c.militaryPower, calcMilitaryPower(entry.enemy)).cls">
+                                {{ getMilAdvantage(c.militaryPower, calcMilitaryPower(entry.enemy)).label }}
+                              </span>
+                            </div>
+                          }
+                        </div>
+                      }
+                      @if (entry.nearRange.length > 0) {
+                        <div class="near-range-section">
+                          <div class="near-range-header">
+                            <span class="near-range-title">📊 Near Range — Could assist with score adjustment</span>
+                            <span class="near-range-hint">Attack range: {{ (entry.enemy.score / 1.75) | number:'1.0-0' }} – {{ (entry.enemy.score / 0.75) | number:'1.0-0' }}</span>
+                          </div>
+                          @for (nr of entry.nearRange; track nr.member.id) {
+                            <div class="near-range-row">
+                              <div class="nr-name">
+                                <span class="nr-nation">{{ nr.member.nation_name }}</span>
+                                @if (nr.member.discord) {
+                                  <span class="nr-discord">💬 {{ nr.member.discord }}</span>
+                                }
+                              </div>
+                              <span class="nr-score">⭐ {{ nr.member.score | number:'1.0-0' }}</span>
+                              <span class="nr-diff" [class]="nr.direction">
+                                {{ nr.direction === 'increase' ? '↑' : '↓' }} {{ nr.scoreDiff | number:'1.0-0' }} pts to enter range
+                              </span>
+                            </div>
+                          }
+                        </div>
+                      }
+                    } @else {
+                      <p class="inline-no-counters">Failed to load counter data</p>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- War History Tab -->
+    @if (activeTab() === 'history') {
+      <div class="tab-content">
+        @if (historyLoading()) {
+          <div class="tab-loading">
+            <div class="spinner"></div>
+            <p>Loading war history...</p>
+          </div>
+        } @else if (warHistory().length === 0 && historyLoaded()) {
+          <p class="empty-state">No war history found</p>
+        } @else {
+          <div class="history-summary">
+            <div class="summary-stat wins">
+              <span class="summary-value">{{ warStats().wins }}</span>
+              <span class="summary-label">Wins</span>
+            </div>
+            <div class="summary-stat losses">
+              <span class="summary-value">{{ warStats().losses }}</span>
+              <span class="summary-label">Losses</span>
+            </div>
+            <div class="summary-stat total">
+              <span class="summary-value">{{ warStats().total }}</span>
+              <span class="summary-label">Total</span>
+            </div>
+          </div>
+          <div class="history-list">
+            @for (war of warHistory(); track war.id) {
+              <a class="history-item" [class]="getWarOutcome(war)" [routerLink]="['/war', war.id]">
+                <div class="history-header">
+                  <span class="outcome-badge" [class]="getWarOutcome(war)">
+                    {{ getWarOutcome(war) === 'win' ? '🏆 Win' : getWarOutcome(war) === 'loss' ? '💀 Loss' : '⏳ Ongoing' }}
+                  </span>
+                  <span class="history-date">{{ war.date | date:'mediumDate' }}</span>
+                </div>
+                <div class="history-nations">
+                  <span class="history-attacker">{{ war.attacker.nation_name }}</span>
+                  <span class="history-vs">vs</span>
+                  <span class="history-defender">{{ war.defender.nation_name }}</span>
+                </div>
+                <div class="history-meta">
+                  <span class="war-type-tag">{{ war.war_type }}</span>
+                  @if (war.reason) {
+                    <span class="war-reason">{{ war.reason }}</span>
+                  }
+                </div>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Members Tab -->
+    @if (activeTab() === 'members') {
+      <div class="tab-content">
+        @if (members().length === 0) {
+          <p class="empty-state">No members found</p>
+        } @else {
+          <div class="members-table-wrap">
+            <table class="members-table">
+              <thead>
+                <tr>
+                  <th>Nation</th>
+                  <th>Leader</th>
+                  <th>Discord</th>
+                  <th>Position</th>
+                  <th class="num">Cities</th>
+                  <th class="num">Score</th>
+                  <th class="num">Soldiers</th>
+                  <th class="num">Tanks</th>
+                  <th class="num">Aircraft</th>
+                  <th class="num">Ships</th>
+                  <th class="num">Wars</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (m of members(); track m.id) {
+                  <tr>
+                    <td class="nation-cell">{{ m.nation_name }}</td>
+                    <td>{{ m.leader_name }}</td>
+                    <td class="discord-cell">
+                      @if (m.discord) {
+                        <span class="discord-tag">💬 {{ m.discord }}</span>
+                      } @else {
+                        <span class="no-discord">—</span>
+                      }
+                    </td>
+                    <td>
+                      <span class="position-badge" [attr.data-pos]="m.alliance_position">
+                        {{ getPositionLabel(m.alliance_position) }}
+                      </span>
+                    </td>
+                    <td class="num">{{ m.num_cities }}</td>
+                    <td class="num">{{ m.score | number:'1.2-2' }}</td>
+                    <td class="num">{{ m.soldiers | number }}</td>
+                    <td class="num">{{ m.tanks | number }}</td>
+                    <td class="num">{{ m.aircraft | number }}</td>
+                    <td class="num">{{ m.ships | number }}</td>
+                    <td class="num">
+                      <span class="wars-count">
+                        {{ m.offensive_wars_count + m.defensive_wars_count }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Treaties Tab -->
+    @if (activeTab() === 'treaties') {
+      <div class="tab-content">
+        @if (treaties().length === 0) {
+          <p class="empty-state">No active treaties</p>
+        } @else {
+          <div class="treaties-grid">
+            @for (treaty of treaties(); track treaty.id) {
+              <div class="treaty-card">
+                <div class="treaty-header">
+                  <span class="treaty-icon">{{ getTreatyIcon(treaty.treaty_type) }}</span>
+                  <span class="treaty-type">{{ treaty.treaty_type }}</span>
+                  @if (treaty.approved) {
+                    <span class="approved-badge">✅ Approved</span>
+                  } @else {
+                    <span class="pending-badge">⏳ Pending</span>
+                  }
+                </div>
+                <div class="treaty-partner">
+                  <span class="partner-label">Partner:</span>
+                  <span class="partner-name">{{ getPartnerAlliance(treaty).name }}</span>
+                </div>
+                <div class="treaty-meta">
+                  <span class="treaty-date">Since {{ treaty.date | date:'mediumDate' }}</span>
+                  @if (treaty.turns_left > 0) {
+                    <span class="treaty-turns">{{ treaty.turns_left }} turns left</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Member Audit Tab -->
+    @if (activeTab() === 'audit') {
+      <div class="tab-content">
+        @if (auditLoading()) {
+          <div class="tab-loading">
+            <div class="spinner"></div>
+            <p>Running member audit...</p>
+          </div>
+        } @else if (auditResults().length === 0 && auditLoaded()) {
+          <p class="empty-state">No members to audit</p>
+        } @else if (auditLoaded()) {
+          <!-- Audit Alert Banner -->
+          <div class="audit-alert">
+            <div class="alert-icon">🚨</div>
+            <div class="alert-text">
+              <strong>Alert Level: RED</strong> — High war probability. All members must meet readiness requirements.
+            </div>
+          </div>
+
+          <!-- Audit Requirements Reference -->
+          <div class="audit-requirements">
+            <div class="req-card">
+              <div class="req-title">🏗️ MMR (Buildings)</div>
+              <div class="req-detail">5/5/5/3 per city</div>
+              <div class="req-sub">5 Barracks · 5 Factories · 5 Hangars · 3 Drydocks</div>
+            </div>
+            <div class="req-card">
+              <div class="req-title">⚔️ MMU (Units)</div>
+              <div class="req-detail">MAX all units</div>
+              <div class="req-sub">Soldiers · Tanks · Aircraft · Ships</div>
+            </div>
+            <div class="req-card">
+              <div class="req-title">🕵️ Spies</div>
+              <div class="req-detail">60 (or 50 w/o CIA)</div>
+              <div class="req-sub">central_intelligence_agency project</div>
+            </div>
+          </div>
+
+          <!-- Audit Summary -->
+          <div class="audit-summary">
+            <div class="audit-stat pass">
+              <span class="audit-stat-value">{{ auditSummary().passAll }}</span>
+              <span class="audit-stat-label">✅ Pass</span>
+            </div>
+            <div class="audit-stat fail">
+              <span class="audit-stat-value">{{ auditSummary().failAll }}</span>
+              <span class="audit-stat-label">❌ Fail</span>
+            </div>
+            <div class="audit-stat detail">
+              <span class="audit-stat-value">{{ auditSummary().failMmr }}</span>
+              <span class="audit-stat-label">🏗️ MMR Fail</span>
+            </div>
+            <div class="audit-stat detail">
+              <span class="audit-stat-value">{{ auditSummary().failMmu }}</span>
+              <span class="audit-stat-label">⚔️ MMU Fail</span>
+            </div>
+            <div class="audit-stat detail">
+              <span class="audit-stat-value">{{ auditSummary().failSpies }}</span>
+              <span class="audit-stat-label">🕵️ Spy Fail</span>
+            </div>
+          </div>
+
+          <!-- Filter -->
+          <div class="audit-filters">
+            <button class="filter-btn" [class.active]="auditFilter() === 'fail'" (click)="setAuditFilter('fail')">
+              ❌ Failing Only ({{ auditSummary().failAll }})
+            </button>
+            <button class="filter-btn" [class.active]="auditFilter() === 'mmr'" (click)="setAuditFilter('mmr')">
+              🏗️ MMR ({{ auditSummary().failMmr }})
+            </button>
+            <button class="filter-btn" [class.active]="auditFilter() === 'mmu'" (click)="setAuditFilter('mmu')">
+              ⚔️ MMU ({{ auditSummary().failMmu }})
+            </button>
+            <button class="filter-btn" [class.active]="auditFilter() === 'spies'" (click)="setAuditFilter('spies')">
+              🕵️ Spies ({{ auditSummary().failSpies }})
+            </button>
+            <button class="filter-btn" [class.active]="auditFilter() === 'all'" (click)="setAuditFilter('all')">
+              📋 All Members ({{ auditSummary().total }})
+            </button>
+          </div>
+
+          <!-- Vacation Mode Members -->
+          @if (vacationMembers().length > 0) {
+            <div class="audit-section-block vacation-section">
+              <h3 class="section-heading">✈️ Vacation Mode ({{ vacationMembers().length }})</h3>
+              <p class="section-desc">These members are on vacation mode and excluded from the audit.</p>
+              <div class="member-mini-list">
+                @for (n of vacationMembers(); track n.id) {
+                  <div class="member-mini-card vacation">
+                    <div class="mini-info">
+                      <span class="mini-name">{{ n.nation_name }}</span>
+                      @if (n.discord) {
+                        <span class="mini-discord">💬 {{ n.discord }}</span>
+                      }
+                    </div>
+                    <div class="mini-meta">
+                      <span class="mini-cities">{{ n.num_cities }} cities</span>
+                      <span class="vacation-time">⏳ {{ formatVacationTime(n.vacation_mode_turns) }} left</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Inactive Members -->
+          @if (inactiveMembers().length > 0) {
+            <div class="audit-section-block inactive-section">
+              <h3 class="section-heading">💤 Inactive Members ({{ inactiveMembers().length }})</h3>
+              <p class="section-desc">Not active in the last 48 hours. Not on vacation mode.</p>
+              <div class="member-mini-list">
+                @for (a of inactiveMembers(); track a.nation.id) {
+                  <div class="member-mini-card inactive">
+                    <div class="mini-info">
+                      <span class="mini-name">{{ a.nation.nation_name }}</span>
+                      @if (a.nation.discord) {
+                        <span class="mini-discord">💬 {{ a.nation.discord }}</span>
+                      }
+                    </div>
+                    <div class="mini-meta">
+                      <span class="mini-cities">{{ a.nation.num_cities }} cities</span>
+                      <span class="inactive-time">🕐 Last seen {{ a.lastActive | date:'short' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Audit Cards -->
+          <div class="audit-list">
+            @for (a of filteredAudit(); track a.nation.id) {
+              <div class="audit-card" [class.pass]="a.passAll" [class.fail]="!a.passAll">
+                <div class="audit-card-header">
+                  <div class="audit-nation-info">
+                    <a class="audit-nation-name" [href]="'https://politicsandwar.com/nation/id=' + a.nation.id" target="_blank" rel="noopener noreferrer">{{ a.nation.nation_name }}</a>
+                    @if (a.nation.discord) {
+                      <span class="audit-discord">💬 {{ a.nation.discord }}</span>
+                    } @else {
+                      <span class="audit-no-discord">No Discord linked</span>
+                    }
+                    <span class="audit-nation-meta">{{ a.nation.num_cities }} cities · ⭐ {{ a.nation.score | number:'1.0-0' }}</span>
+                    <span class="audit-last-active" [class.inactive]="!a.onlineButNotMaxed && !a.mmu.pass" [class.recent]="a.onlineButNotMaxed">
+                      🕐 {{ formatInactiveDuration(a.lastActive) }}
+                    </span>
+                  </div>
+                  <div class="audit-actions">
+                    <button class="copy-audit-btn" (click)="copyAuditMessage(a)" title="Copy audit message">
+                      📋 Copy
+                    </button>
+                    @if (a.passAll) {
+                      <span class="status-badge pass">✅ PASS</span>
+                    } @else {
+                      <span class="status-badge fail">❌ {{ a.issueCount }} ISSUE{{ a.issueCount > 1 ? 'S' : '' }}</span>
+                    }
+                  </div>
+                </div>
+
+                @if (!a.passAll) {
+                  <div class="audit-card-body">
+                    <!-- MMR Check -->
+                    <div class="audit-check" [class.pass]="a.mmr.pass" [class.fail]="!a.mmr.pass">
+                      <div class="check-header">
+                        <span class="check-icon">{{ a.mmr.pass ? '✅' : '❌' }}</span>
+                        <span class="check-title">MMR — Buildings (5/5/5/3)</span>
+                      </div>
+                      @if (!a.mmr.pass) {
+                        <div class="check-detail">
+                          <div class="mmr-deficit">
+                            @if (a.mmr.totalDeficit.barracks > 0) {
+                              <span class="deficit-item">🪖 Need {{ a.mmr.totalDeficit.barracks }} more barracks</span>
+                            }
+                            @if (a.mmr.totalDeficit.factory > 0) {
+                              <span class="deficit-item">🛡️ Need {{ a.mmr.totalDeficit.factory }} more factories</span>
+                            }
+                            @if (a.mmr.totalDeficit.hangar > 0) {
+                              <span class="deficit-item">✈️ Need {{ a.mmr.totalDeficit.hangar }} more hangars</span>
+                            }
+                            @if (a.mmr.totalDeficit.drydock > 0) {
+                              <span class="deficit-item">🚢 Need {{ a.mmr.totalDeficit.drydock }} more drydocks</span>
+                            }
+                          </div>
+                          <div class="mmr-cities-fail">
+                            <span class="fail-count">{{ countFailCities(a.mmr) }} of {{ a.nation.num_cities }} cities non-compliant</span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- MMU Check -->
+                    <div class="audit-check" [class.pass]="a.mmu.pass" [class.fail]="!a.mmu.pass">
+                      <div class="check-header">
+                        <span class="check-icon">{{ a.mmu.pass ? '✅' : '❌' }}</span>
+                        <span class="check-title">MMU — Units (MAX)</span>
+                      </div>
+                      @if (!a.mmu.pass) {
+                        <div class="check-detail mmu-grid">
+                          @if (a.mmu.soldiers < a.mmu.maxSoldiers) {
+                            <div class="mmu-item fail">
+                              <span class="mmu-label">🪖 Soldiers</span>
+                              <span class="mmu-value">{{ a.mmu.soldiers | number }} / {{ a.mmu.maxSoldiers | number }}</span>
+                              <span class="mmu-need">Buy {{ a.mmu.maxSoldiers - a.mmu.soldiers | number }}</span>
+                            </div>
+                          }
+                          @if (a.mmu.tanks < a.mmu.maxTanks) {
+                            <div class="mmu-item fail">
+                              <span class="mmu-label">🛡️ Tanks</span>
+                              <span class="mmu-value">{{ a.mmu.tanks | number }} / {{ a.mmu.maxTanks | number }}</span>
+                              <span class="mmu-need">Buy {{ a.mmu.maxTanks - a.mmu.tanks | number }}</span>
+                            </div>
+                          }
+                          @if (a.mmu.aircraft < a.mmu.maxAircraft) {
+                            <div class="mmu-item fail">
+                              <span class="mmu-label">✈️ Aircraft</span>
+                              <span class="mmu-value">{{ a.mmu.aircraft | number }} / {{ a.mmu.maxAircraft | number }}</span>
+                              <span class="mmu-need">Buy {{ a.mmu.maxAircraft - a.mmu.aircraft | number }}</span>
+                            </div>
+                          }
+                          @if (a.mmu.ships < a.mmu.maxShips) {
+                            <div class="mmu-item fail">
+                              <span class="mmu-label">🚢 Ships</span>
+                              <span class="mmu-value">{{ a.mmu.ships | number }} / {{ a.mmu.maxShips | number }}</span>
+                              <span class="mmu-need">Buy {{ a.mmu.maxShips - a.mmu.ships | number }}</span>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Spy Check -->
+                    <div class="audit-check" [class.pass]="a.spies.pass" [class.fail]="!a.spies.pass">
+                      <div class="check-header">
+                        <span class="check-icon">{{ a.spies.pass ? '✅' : '❌' }}</span>
+                        <span class="check-title">Spies</span>
+                      </div>
+                      @if (!a.spies.pass) {
+                        <div class="check-detail">
+                          <span class="spy-detail">
+                            {{ a.spies.current }} / {{ a.spies.required }} spies
+                            — Need {{ a.spies.required - a.spies.current }} more
+                            @if (!a.spies.hasCia) {
+                              <span class="no-cia-warn">⚠️ No Intelligence Agency project (max 50) — Contact Minister of Finance in econ ticket</span>
+                            }
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  }
+</div>

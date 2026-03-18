@@ -1,0 +1,29 @@
+<a class="card alliance-link" routerLink="/alliance">
+  <div class="card-header">
+    <h2>🛡️ Alliance</h2>
+    <span class="view-more">View Dashboard →</span>
+  </div>
+  <div class="card-body">
+    <div class="alliance-header">
+      @if (alliance().flag) {
+        <img [src]="alliance().flag" alt="Flag" class="alliance-flag" />
+      }
+      <div>
+        <h3>{{ alliance().name }}</h3>
+        @if (alliance().acronym) {
+          <span class="acronym">[{{ alliance().acronym }}]</span>
+        }
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat">
+        <span class="stat-label">Score</span>
+        <span class="stat-value">{{ alliance().score | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Color</span>
+        <span class="stat-value">{{ alliance().color }}</span>
+      </div>
+    </div>
+  </div>
+</a>

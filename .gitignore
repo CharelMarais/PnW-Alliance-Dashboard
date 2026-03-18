@@ -44,3 +44,4 @@ __screenshots__/
 Thumbs.db
 
 src/environments
+src/environments/firebase.ts
